@@ -1,5 +1,6 @@
 package my.celium.org.itemhighlighter.client;
 
+import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -28,17 +29,27 @@ import net.minecraft.world.scores.TeamColor;
  * entities are tagged glowing and joined to a client-side team in the
  * nearest palette color, everything else is left alone. Client only, same
  * per-tick pattern as vanilla nameplate syncing.
+ *
+ * <p>On clients vanilla reads "glowing" from the synced shared flag (bit 6),
+ * and {@code setGlowingTag} there only rewrites that flag from itself, so it
+ * cannot turn a glow on. The flag is set directly instead (reflectively, it is
+ * protected), and re-applied every tick in case a server update resets it.
  */
 public final class EntityGlowSync {
     /** Client-side teams are ours alone; the server never touches them. */
     static final String TEAM_PREFIX = "ih_";
+    static final int GLOWING_FLAG = 6;
+
+    private static volatile Method getSharedFlag;
+    private static volatile Method setSharedFlag;
+    private static volatile boolean methodsResolved;
 
     private static final Map<Entity, Applied> APPLIED = new WeakHashMap<>();
 
     private EntityGlowSync() {
     }
 
-    private record Applied(boolean originalTag, String originalTeam, String ourTeam, int rgb) {
+    private record Applied(boolean originalGlow, String originalTeam, String ourTeam, int rgb) {
     }
 
     public static void tickClient(Minecraft minecraft) {
@@ -103,10 +114,10 @@ public final class EntityGlowSync {
         if (applied == null || applied.rgb() != rgb) {
             restoreIfApplied(level, entity);
             String originalTeam = entity.getTeam() == null ? null : entity.getTeam().getName();
-            APPLIED.put(entity, new Applied(entity.hasGlowingTag(), originalTeam, wantTeam, rgb));
+            APPLIED.put(entity, new Applied(isGlowing(entity), originalTeam, wantTeam, rgb));
         }
-        if (!entity.hasGlowingTag()) {
-            entity.setGlowingTag(true);
+        if (!isGlowing(entity)) {
+            setGlowing(entity, true);
         }
         joinTeam(level.getScoreboard(), entity, wantTeam, rgb);
     }
@@ -134,8 +145,8 @@ public final class EntityGlowSync {
     }
 
     private static void restore(ClientLevel level, Entity entity, Applied applied) {
-        if (entity.hasGlowingTag() != applied.originalTag()) {
-            entity.setGlowingTag(applied.originalTag());
+        if (isGlowing(entity) != applied.originalGlow()) {
+            setGlowing(entity, applied.originalGlow());
         }
         if (level == null) {
             return;
@@ -172,6 +183,54 @@ public final class EntityGlowSync {
             if (entity.isRemoved()) {
                 iterator.remove();
             }
+        }
+    }
+
+    /** Whether the entity's synced glowing flag is set; {@code false} on any failure. */
+    static boolean isGlowing(Entity entity) {
+        resolveMethods();
+        try {
+            return getSharedFlag != null && (boolean) getSharedFlag.invoke(entity, GLOWING_FLAG);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return false;
+        }
+    }
+
+    /** Sets the entity's synced glowing flag client-side; silently skipped on failure. */
+    static void setGlowing(Entity entity, boolean glowing) {
+        resolveMethods();
+        try {
+            if (setSharedFlag != null) {
+                setSharedFlag.invoke(entity, GLOWING_FLAG, glowing);
+            }
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            // Glow is cosmetic; never break the tick.
+        }
+    }
+
+    private static void resolveMethods() {
+        if (methodsResolved) {
+            return;
+        }
+        synchronized (EntityGlowSync.class) {
+            if (methodsResolved) {
+                return;
+            }
+            try {
+                Method get = Entity.class.getDeclaredMethod("getSharedFlag", int.class);
+                get.setAccessible(true);
+                getSharedFlag = get;
+            } catch (NoSuchMethodException | RuntimeException e) {
+                getSharedFlag = null;
+            }
+            try {
+                Method set = Entity.class.getDeclaredMethod("setSharedFlag", int.class, boolean.class);
+                set.setAccessible(true);
+                setSharedFlag = set;
+            } catch (NoSuchMethodException | RuntimeException e) {
+                setSharedFlag = null;
+            }
+            methodsResolved = true;
         }
     }
 
