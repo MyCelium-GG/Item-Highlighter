@@ -33,7 +33,7 @@ class ItemHighlighterModTest {
     @Test
     void configDefaults() {
         assertTrue(ItemHighlighterMod.enabled.get());
-        assertEquals(0xFFFF55, ItemHighlighterMod.defaultColor.get());
+        assertEquals(0xFFA657, ItemHighlighterMod.defaultColor.get());
         assertTrue(ItemHighlighterMod.showTooltipLine.get());
         assertTrue(ItemHighlighterMod.hotbarHighlight.get());
         assertFalse(ItemHighlighterMod.matchComponents.get());
@@ -53,7 +53,7 @@ class ItemHighlighterModTest {
 
     @Test
     void defaultColorClamps() {
-        assertEquals(0xFFFF55, ItemHighlighterMod.effectiveDefaultColor());
+        assertEquals(0xFFA657, ItemHighlighterMod.effectiveDefaultColor());
     }
 
     @Test

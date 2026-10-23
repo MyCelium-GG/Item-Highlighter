@@ -5,6 +5,7 @@ import my.celium.org.config.ConfigBuilder;
 import my.celium.org.config.ConfigValue;
 import my.celium.org.config.MycelConfig;
 import my.celium.org.metadata.ModMetadata;
+import my.celium.org.util.TextUtil;
 
 /**
  * ItemHighlighter: highlights item textures with a custom color wherever you
@@ -20,14 +21,14 @@ import my.celium.org.metadata.ModMetadata;
 public final class ItemHighlighterMod {
     public static final String ID = "itemhighlighter";
 
-    public static final ModMetadata META = ModMetadata.builder(ID, "ItemHighlighter", "1.0.2")
+    public static final ModMetadata META = ModMetadata.builder(ID, "ItemHighlighter", "1.0.3")
             .author("MyCelium")
             .website("https://www.curseforge.com/minecraft/mc-mods/item-highlighter-mod")
             .updateUrl("https://wiki.mycelium-gg.org/updates/itemhighlighter.json")
             .build();
 
     /** Default gold highlight, as packed {@code 0xRRGGBB}. */
-    public static final int DEFAULT_COLOR_FALLBACK = 0xFFFF55;
+    public static final int DEFAULT_COLOR_FALLBACK = TextUtil.WARN;
 
     public static ConfigValue<Boolean> enabled;
     public static ConfigValue<Integer> defaultColor;

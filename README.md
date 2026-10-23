@@ -55,7 +55,7 @@ Hold the item and type (client command, no permissions needed):
 | Key | Default | Meaning |
 |---|---|---|
 | `enabled` | `true` | Master switch (also toggleable live via `Mycel.setEnabled`). |
-| `defaultColor` | `0xFFFF55` | Default highlight color, packed hex RGB (`0x000000`-`0xFFFFFF`). |
+| `defaultColor` | `0xFFA657` | Default highlight color, packed hex RGB (`0x000000`-`0xFFFFFF`). |
 | `showTooltipLine` | `true` | Append the colored `★ Highlighted` tooltip line. |
 | `hotbarHighlight` | `true` | Tint highlighted item textures in the hotbar, inventory and containers. |
 | `matchComponents` | `false` | Only highlight stacks identical to the held one (enchantments, names, damage, …) instead of the whole item type. |

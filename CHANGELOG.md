@@ -6,6 +6,14 @@ ItemHighlighter is versioned semantically (`MAJOR.MINOR.PATCH`).
 It runs on Minecraft 26.3 (Fabric + Forge + NeoForge, Java 25) and requires
  [Mycel](https://github.com/MyCelium-GG/MyCel-Lib) (`my.celium.org`).
 
+## [1.0.3] - Unreleased
+
+### Changed
+
+- Requires Mycel 1.3.1.
+- New default highlight color: wiki orange `#FFA657` instead of legacy
+  yellow `#FFFF55`. Existing configs keep the color they have.
+
 ## [1.0.2] - 2026-10-19
 
 ### Changed
