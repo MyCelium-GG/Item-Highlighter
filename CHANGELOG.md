@@ -6,6 +6,19 @@ ItemHighlighter is versioned semantically (`MAJOR.MINOR.PATCH`).
 It runs on Minecraft 26.3 (Fabric + Forge + NeoForge, Java 25) and requires
  [Mycel](https://github.com/MyCelium-GG/MyCel-Lib) (`my.celium.org`).
 
+## [1.0.4] - 2026-10-25
+
+### Changed
+
+- Requires Mycel 1.4.0. Operators now get one chat line per session when a
+  MyCelium mod has an update, and `/mycel mods` marks it.
+
+### Fixed
+
+- A highlight file that could not be read was replaced by an empty one on
+  the next highlight. It is now kept as `itemhighlighter_data.json.broken`,
+  and saves are atomic, so a crash mid-save can no longer corrupt the file.
+
 ## [1.0.3] - 2026-10-23
 
 ### Changed

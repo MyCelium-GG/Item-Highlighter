@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -46,5 +47,15 @@ class HighlightStoreTest {
         HighlightStore.load(tempDir);
         assertEquals(0x00AAAA, HighlightStore.getColor("minecraft:torch"));
         assertEquals(0x55FFFF, HighlightStore.getColor("minecraft:ender_pearl"));
+    }
+
+    @Test
+    void brokenFileIsKeptInsteadOfOverwritten() throws Exception {
+        Path data = tempDir.resolve(HighlightStore.FILE_NAME);
+        Files.writeString(data, "{ \"highlights\": { broken");
+        HighlightStore.load(tempDir);
+        HighlightStore.setColor("minecraft:torch", 0x00AAAA);
+        assertEquals("{ \"highlights\": { broken", Files.readString(tempDir.resolve(HighlightStore.FILE_NAME + ".broken")));
+        assertEquals(0x00AAAA, HighlightStore.getColor("minecraft:torch"));
     }
 }

@@ -1,18 +1,11 @@
 package my.celium.org.itemhighlighter;
 
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-
 import my.celium.org.Mycel;
+import my.celium.org.data.MycelDataFile;
 import my.celium.org.logging.MycelLog;
 
 /**
@@ -25,18 +18,16 @@ import my.celium.org.logging.MycelLog;
  * {@code 0xRRGGBB} colors. Lives in
  * {@code config/itemhighlighter_data.json} (alongside Mycel's own config
  * dir), so highlights survive restarts. Small enough to rewrite wholesale on
- * every mutation. No Minecraft classes - only Gson and files - so it is
- * fully unit-testable.
+ * every mutation. {@link MycelDataFile} keeps a broken file aside instead of
+ * letting the next save overwrite it.
  */
 public final class HighlightStore {
     static final String FILE_NAME = "itemhighlighter_data.json";
     /** Maximum highlighted items kept; oldest entries are dropped first. */
     static final int MAX_ENTRIES = 256;
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
     private static final Map<String, Integer> DATA = new LinkedHashMap<>();
-    private static Path loadedFrom;
+    private static MycelDataFile file;
 
     private HighlightStore() {
     }
@@ -57,25 +48,18 @@ public final class HighlightStore {
     /** Loads from an explicit directory (used by tests). */
     public static synchronized void load(Path dir) {
         DATA.clear();
-        loadedFrom = dir == null ? null : dir.resolve(FILE_NAME);
-        if (loadedFrom == null || !Files.isRegularFile(loadedFrom)) {
+        file = dir == null ? null : MycelDataFile.at(ItemHighlighterMod.META, dir.resolve(FILE_NAME));
+        if (file == null) {
             return;
         }
-        try (Reader reader = Files.newBufferedReader(loadedFrom, StandardCharsets.UTF_8)) {
-            Root root = GSON.fromJson(reader, new TypeToken<Root>() {
-            }.getType());
-            if (root != null && root.highlights != null) {
-                for (Map.Entry<String, Integer> entry : root.highlights.entrySet()) {
-                    if (entry.getKey() != null && !entry.getKey().isBlank() && entry.getValue() != null
-                            && entry.getValue() >= 0 && entry.getValue() <= 0xFFFFFF) {
-                        DATA.put(entry.getKey(), entry.getValue());
-                    }
+        Root root = file.read(Root.class, Root::new);
+        if (root.highlights != null) {
+            for (Map.Entry<String, Integer> entry : root.highlights.entrySet()) {
+                if (entry.getKey() != null && !entry.getKey().isBlank() && entry.getValue() != null
+                        && entry.getValue() >= 0 && entry.getValue() <= 0xFFFFFF) {
+                    DATA.put(entry.getKey(), entry.getValue());
                 }
             }
-        } catch (Exception e) {
-            MycelLog.warnMod(ItemHighlighterMod.ID, "Could not read highlight data, starting fresh: {}",
-                    e.toString());
-            DATA.clear();
         }
     }
 
@@ -119,22 +103,15 @@ public final class HighlightStore {
     /** Forgets everything (used by tests). Does not touch disk. */
     static synchronized void clearForTesting() {
         DATA.clear();
-        loadedFrom = null;
+        file = null;
     }
 
     private static void save() {
-        if (loadedFrom == null) {
+        if (file == null) {
             return;
         }
-        try {
-            Files.createDirectories(loadedFrom.getParent());
-            Root root = new Root();
-            root.highlights.putAll(DATA);
-            try (Writer writer = Files.newBufferedWriter(loadedFrom, StandardCharsets.UTF_8)) {
-                GSON.toJson(root, writer);
-            }
-        } catch (Exception e) {
-            MycelLog.warnMod(ItemHighlighterMod.ID, "Could not save highlight data: {}", e.toString());
-        }
+        Root root = new Root();
+        root.highlights.putAll(DATA);
+        file.write(root);
     }
 }

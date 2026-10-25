@@ -11,16 +11,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import my.celium.org.Mycel;
-import my.celium.org.internal.PlatformHolder;
 import my.celium.org.itemhighlighter.client.ContainerHighlight;
 import my.celium.org.itemhighlighter.client.EntityGlowSync;
 import my.celium.org.itemhighlighter.client.HotbarHighlight;
+import my.celium.org.testing.MycelTesting;
 
 /** The mod boots on Mycel with a tiny, well-defaulted config. */
 class ItemHighlighterModTest {
     @BeforeAll
     static void initOnce(@TempDir Path tempDir) {
-        PlatformHolder.setForTesting(new ItemHighlighterTestPlatform(tempDir));
+        MycelTesting.useConfigDir(tempDir);
         ItemHighlighterMod.init();
     }
 
