@@ -21,7 +21,7 @@ import my.celium.org.util.TextUtil;
 public final class ItemHighlighterMod {
     public static final String ID = "itemhighlighter";
 
-    public static final ModMetadata META = ModMetadata.builder(ID, "ItemHighlighter", "1.0.4")
+    public static final ModMetadata META = ModMetadata.builder(ID, "ItemHighlighter", "1.0.5")
             .author("MyCelium")
             .website("https://www.curseforge.com/minecraft/mc-mods/item-highlighter-mod")
             .updateUrl("https://wiki.mycelium-gg.org/updates/itemhighlighter.json")
