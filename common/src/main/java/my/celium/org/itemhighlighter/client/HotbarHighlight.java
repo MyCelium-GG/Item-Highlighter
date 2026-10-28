@@ -1,5 +1,6 @@
 package my.celium.org.itemhighlighter.client;
 
+import my.celium.org.client.MycelScreens;
 import my.celium.org.itemhighlighter.HighlightKeys;
 import my.celium.org.itemhighlighter.HighlightStore;
 import my.celium.org.itemhighlighter.ItemHighlighterMod;
@@ -187,7 +188,7 @@ public final class HotbarHighlight {
     /** Whether any screen (menu, chat, ...) is currently open. */
     private static boolean isAnyScreenOpen(Minecraft minecraft) {
         try {
-            return minecraft.gui != null && minecraft.gui.screen() != null;
+            return minecraft.gui != null && MycelScreens.current() != null;
         } catch (RuntimeException e) {
             return false;
         }

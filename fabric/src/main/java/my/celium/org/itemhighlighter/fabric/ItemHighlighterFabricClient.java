@@ -35,9 +35,8 @@ public final class ItemHighlighterFabricClient implements ClientModInitializer {
         HighlightStore.load();
         HudElementRegistry.addLast(HUD_ID, (gfx, tracker) -> HotbarHighlight.render(gfx));
         ClientTickEvents.END_CLIENT_TICK.register(EntityGlowSync::tickClient);
-        ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> ScreenEvents.afterForeground(screen)
-                .register((foregroundScreen, gfx, mouseX, mouseY, tickDelta) ->
-                        ContainerHighlight.renderScreen(gfx, foregroundScreen, mouseX, mouseY)));
+        ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> ScreenHooks.afterForeground(screen,
+                (foregroundScreen, gfx, mouseX, mouseY) -> ContainerHighlight.renderScreen(gfx, foregroundScreen, mouseX, mouseY)));
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> {
             if (TooltipLines.applies(stack)) {
                 Component line = TooltipLines.lineFor(stack);

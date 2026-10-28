@@ -6,5 +6,5 @@ highlight with `/hl #RRGGBB` (`/hl clear` removes it, `/hl list` shows all).
 
 - Per-item-type highlights with custom colors, persisted across restarts
 
-Requires **Mycel**. Needs Fabric Loader, Fabric API, Minecraft 26.3, Java 25.
+Requires **Mycel**. Needs Fabric Loader, Fabric API, Minecraft 26.3, 26.2 or 26.1 (26.1-26.1.2), Java 25.
 MIT license.

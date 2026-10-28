@@ -3,7 +3,6 @@ package my.celium.org.itemhighlighter.client;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 import java.util.WeakHashMap;
 
 import my.celium.org.itemhighlighter.HighlightColor;
@@ -18,7 +17,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
-import net.minecraft.world.scores.TeamColor;
 
 /**
  * Gives highlighted world entities (dropped items, item frames) a real
@@ -130,7 +128,7 @@ public final class EntityGlowSync {
         if (team == null) {
             team = scoreboard.addPlayerTeam(teamName);
         }
-        team.setColor(Optional.of(teamColorFor(rgb)));
+        TeamColors.set(team, HighlightColor.nearestLegacyCode(rgb));
         PlayerTeam current = entity.getTeam();
         if (current == null || !teamName.equals(current.getName())) {
             scoreboard.addPlayerToTeam(entity.getScoreboardName(), team);
@@ -232,27 +230,5 @@ public final class EntityGlowSync {
             }
             methodsResolved = true;
         }
-    }
-
-    /** Nearest 16-color palette entry for a packed highlight color. */
-    static TeamColor teamColorFor(int rgb) {
-        return switch (HighlightColor.nearestLegacyCode(rgb)) {
-            case '0' -> TeamColor.BLACK;
-            case '1' -> TeamColor.DARK_BLUE;
-            case '2' -> TeamColor.DARK_GREEN;
-            case '3' -> TeamColor.DARK_AQUA;
-            case '4' -> TeamColor.DARK_RED;
-            case '5' -> TeamColor.DARK_PURPLE;
-            case '6' -> TeamColor.GOLD;
-            case '7' -> TeamColor.GRAY;
-            case '8' -> TeamColor.DARK_GRAY;
-            case '9' -> TeamColor.BLUE;
-            case 'a' -> TeamColor.GREEN;
-            case 'b' -> TeamColor.AQUA;
-            case 'c' -> TeamColor.RED;
-            case 'd' -> TeamColor.LIGHT_PURPLE;
-            case 'e' -> TeamColor.YELLOW;
-            default -> TeamColor.WHITE;
-        };
     }
 }

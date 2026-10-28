@@ -16,7 +16,7 @@ diagnostics are reused.
 | | |
 |---|---|
 | Mod id | `itemhighlighter` |
-| Minecraft | **26.3** · Java **25** |
+| Minecraft | **26.3**, **26.2**, **26.1** (26.1-26.1.2) · Java **25** |
 | Loaders | Fabric, Forge, NeoForge |
 
 ## Behavior
