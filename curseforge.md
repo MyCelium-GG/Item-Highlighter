@@ -1,15 +1,19 @@
 # ItemHighlighter
 
-Hold an item, give it a color, spot it instantly. Highlighted items get a glowing outline in the world (dropped items and item frames), a tinted texture in the hotbar, inventory and containers, and a colored `★ Highlighted` tooltip line. No keybinds.
+Give any item a color and spot it instantly. Hover an item in any inventory, press H and pick a color. It gets a soft glow in your hotbar and every inventory, with the icon and stack count still fully readable, a glowing outline when it lies in the world or sits in an item frame, and a colored `★ Highlighted` tooltip line.
 
-![Dropped items on the ground with colored glowing outlines](https://wiki.mycelium-gg.org/itemhighlighter/img/world-glow.jpg)
+![A chest of mining loot where the highlighted diamonds and emeralds glow in their own colors](https://wiki.mycelium-gg.org/itemhighlighter/img/chest.png)
 
-- `/hl #RRGGBB` highlights the held item type (`&` and `§` codes work too)
-- `/hl clear` removes it, `/hl list` shows them all
+- Press H in the world to open the menu on the item you hold, or use `/hl`
+- Search every item, so you can mark things you don't have yet
+- Pick from a palette or color picker, or type a hex code, with a live preview
 - Each item type keeps its own color, saved across restarts
 - `matchComponents` narrows a highlight to the exact item you hold
+- `/hl #RRGGBB`, `/hl clear` and `/hl list` still work if you prefer commands
 
-![A chest where highlighted items stand out with colored tints](https://wiki.mycelium-gg.org/itemhighlighter/img/chest.png)
+![The highlight menu with item search, color palette and color picker](https://wiki.mycelium-gg.org/itemhighlighter/img/menu.png)
+
+World outlines use the closest of Minecraft's 16 team colors, and the menu shows which one you'll get.
 
 ## Install
 
