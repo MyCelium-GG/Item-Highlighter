@@ -8,13 +8,13 @@ import my.celium.org.metadata.ModMetadata;
 import my.celium.org.util.TextUtil;
 
 /**
- * ItemHighlighter: highlights item textures with a custom color wherever you
- * see them - tinted hotbar, inventory and container item sprites plus a
- * colored tooltip line.
+ * ItemHighlighter: marks items with a custom color wherever you see them: a
+ * glow behind them in the hotbar, inventories and containers, a glowing outline
+ * in the world and a colored tooltip line.
  *
  * <p>Client-side only. {@link #init()} registers metadata and config with
  * Mycel; each loader's <em>client</em> entrypoint then (a) registers the
- * {@code /hl} command, (b) highlights item textures through its native HUD
+ * {@code /hl} command and the menu key, (b) draws highlights through its native HUD
  * and screen hooks, and (c) appends the highlight line through its native
  * tooltip hook. Dedicated servers never touch client classes.
  */
@@ -34,6 +34,7 @@ public final class ItemHighlighterMod {
     public static ConfigValue<Integer> defaultColor;
     public static ConfigValue<Boolean> showTooltipLine;
     public static ConfigValue<Boolean> hotbarHighlight;
+    public static ConfigValue<Boolean> worldGlow;
     public static ConfigValue<Boolean> matchComponents;
     public static MycelConfig config;
 
@@ -49,11 +50,13 @@ public final class ItemHighlighterMod {
         enabled = builder.booleanValue("enabled", true,
                 "Whether item highlights are shown.");
         defaultColor = builder.intValue("defaultColor", DEFAULT_COLOR_FALLBACK, 0x000000, 0xFFFFFF,
-                "Default highlight color (hex RGB) used by /hl with no color.");
+                "Default highlight color (hex RGB) for items you highlight before picking one.");
         showTooltipLine = builder.booleanValue("showTooltipLine", true,
                 "Append a colored \"★ Highlighted\" line to highlighted items' tooltips.");
         hotbarHighlight = builder.booleanValue("hotbarHighlight", true,
-                "Draw a texture-hugging highlight over highlighted item sprites in the hotbar, offhand, inventories and containers.");
+                "Show a colored glow behind highlighted items in the hotbar, offhand, inventories and containers.");
+        worldGlow = builder.booleanValue("worldGlow", true,
+                "Give highlighted dropped items and item frames a glowing outline in the world.");
         matchComponents = builder.booleanValue("matchComponents", false,
                 "When true, only stacks identical to the highlighted one match (same enchantments, custom name, damage and other components). When false, every item of the same type highlights.");
         config = builder.build();

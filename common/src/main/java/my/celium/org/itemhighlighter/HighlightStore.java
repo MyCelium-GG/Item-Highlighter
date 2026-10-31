@@ -73,8 +73,8 @@ public final class HighlightStore {
         if (itemId == null || itemId.isBlank()) {
             return;
         }
-        DATA.remove(itemId);
-        while (DATA.size() > MAX_ENTRIES - 1) {
+        // Recoloring keeps the item's place; only a new item can push one out.
+        while (!DATA.containsKey(itemId) && DATA.size() > MAX_ENTRIES - 1) {
             var oldest = DATA.keySet().iterator();
             if (!oldest.hasNext()) {
                 break;

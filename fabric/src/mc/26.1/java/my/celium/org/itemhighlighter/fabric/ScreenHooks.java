@@ -13,10 +13,10 @@ final class ScreenHooks {
         void draw(Screen screen, GuiGraphicsExtractor gfx, int mouseX, int mouseY);
     }
 
-    /** Runs {@code draw} after {@code screen} draws its contents, every frame. */
+    /** Runs {@code draw} every frame, below the screen's items and tooltip. */
     static void afterForeground(Screen screen, Draw draw) {
-        // Fabric API for 26.1 has no afterForeground; afterExtract also draws
-        // over the item on the cursor.
-        ScreenEvents.afterExtract(screen).register((current, gfx, mouseX, mouseY, tickDelta) -> draw.draw(current, gfx, mouseX, mouseY));
+        // Fabric API for 26.1 has no afterForeground, and afterExtract draws
+        // over tooltips. Here the glow sits under the real items instead.
+        ScreenEvents.afterBackground(screen).register((current, gfx, mouseX, mouseY, tickDelta) -> draw.draw(current, gfx, mouseX, mouseY));
     }
 }

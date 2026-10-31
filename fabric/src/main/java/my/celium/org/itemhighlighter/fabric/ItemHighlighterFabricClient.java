@@ -7,8 +7,8 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import my.celium.org.itemhighlighter.HighlightStore;
 import my.celium.org.itemhighlighter.ItemHighlighterMod;
 import my.celium.org.itemhighlighter.client.ContainerHighlight;
-import my.celium.org.itemhighlighter.client.EntityGlowSync;
 import my.celium.org.itemhighlighter.client.HighlightActions;
+import my.celium.org.itemhighlighter.client.HighlightClient;
 import my.celium.org.itemhighlighter.client.HotbarHighlight;
 import my.celium.org.itemhighlighter.client.TooltipLines;
 import net.fabricmc.api.ClientModInitializer;
@@ -16,6 +16,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.network.chat.Component;
@@ -33,8 +34,9 @@ public final class ItemHighlighterFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         HighlightStore.load();
+        KeyMappingHelper.registerKeyMapping(HighlightClient.OPEN_KEY);
         HudElementRegistry.addLast(HUD_ID, (gfx, tracker) -> HotbarHighlight.render(gfx));
-        ClientTickEvents.END_CLIENT_TICK.register(EntityGlowSync::tickClient);
+        ClientTickEvents.END_CLIENT_TICK.register(HighlightClient::tick);
         ScreenEvents.AFTER_INIT.register((client, screen, width, height) -> ScreenHooks.afterForeground(screen,
                 (foregroundScreen, gfx, mouseX, mouseY) -> ContainerHighlight.renderScreen(gfx, foregroundScreen, mouseX, mouseY)));
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> {
@@ -63,10 +65,13 @@ public final class ItemHighlighterFabricClient implements ClientModInitializer {
                         .executes(context -> deliver(context.getSource(),
                                 HighlightActions.dispatchColorArgument(
                                         StringArgumentType.getString(context, ARGUMENT_COLOR)))))
-                .executes(context -> deliver(context.getSource(), HighlightActions.highlightHeld(null)));
+                .executes(context -> deliver(context.getSource(), HighlightActions.openMenu()));
     }
 
     private static int deliver(FabricClientCommandSource source, HighlightActions.Result result) {
+        if (result.message() == null) {
+            return result.code();
+        }
         if (result.success()) {
             source.sendFeedback(result.message());
         } else {

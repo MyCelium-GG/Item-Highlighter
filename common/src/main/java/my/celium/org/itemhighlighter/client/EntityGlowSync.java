@@ -67,7 +67,7 @@ public final class EntityGlowSync {
             APPLIED.clear();
             return;
         }
-        if (!ItemHighlighterMod.isModEnabled()) {
+        if (!ItemHighlighterMod.isModEnabled() || !worldGlowEnabled()) {
             restoreAll(level);
             return;
         }
@@ -84,6 +84,14 @@ public final class EntityGlowSync {
             }
         }
         pruneRemoved(level);
+    }
+
+    private static boolean worldGlowEnabled() {
+        try {
+            return ItemHighlighterMod.worldGlow.get();
+        } catch (RuntimeException e) {
+            return true;
+        }
     }
 
     /** Highlight color for an entity's displayed item, or {@code null}. */

@@ -18,14 +18,14 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
  */
 @Mod(ItemHighlighterMod.ID)
 public final class ItemHighlighterNeoForge {
-    public ItemHighlighterNeoForge(@SuppressWarnings("unused") IEventBus modBus,
+    public ItemHighlighterNeoForge(IEventBus modBus,
             @SuppressWarnings("unused") ModContainer container) {
         ItemHighlighterMod.init();
         if (FMLEnvironment.getDist().isClient()) {
             ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class,
                     () -> (ModContainer ignored, Screen parent) -> ClientHooks.createConfigScreen(parent,
                             ItemHighlighterMod.ID));
-            ClientItemHighlighter.register();
+            ClientItemHighlighter.register(modBus);
         }
     }
 }

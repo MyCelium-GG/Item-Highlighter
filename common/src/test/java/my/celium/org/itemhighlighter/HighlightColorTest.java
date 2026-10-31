@@ -91,4 +91,17 @@ class HighlightColorTest {
         assertEquals('6', HighlightColor.nearestLegacyCode(0xFFAA00));
         assertEquals('b', HighlightColor.nearestLegacyCode(0x55FFFF));
     }
+
+    @Test
+    void hsvRoundTrips() {
+        for (HighlightColor.Preset preset : HighlightColor.PRESETS) {
+            float[] hsv = HighlightColor.toHsv(preset.rgb());
+            int back = HighlightColor.hsv(hsv[0], hsv[1], hsv[2]);
+            for (int shift = 0; shift <= 16; shift += 8) {
+                int expected = (preset.rgb() >> shift) & 0xFF;
+                int actual = (back >> shift) & 0xFF;
+                assertEquals(expected, actual, 1, preset.name());
+            }
+        }
+    }
 }

@@ -7,8 +7,8 @@ import com.mojang.datafixers.util.Either;
 import my.celium.org.itemhighlighter.HighlightStore;
 import my.celium.org.itemhighlighter.ItemHighlighterMod;
 import my.celium.org.itemhighlighter.client.ContainerHighlight;
-import my.celium.org.itemhighlighter.client.EntityGlowSync;
 import my.celium.org.itemhighlighter.client.HighlightActions;
+import my.celium.org.itemhighlighter.client.HighlightClient;
 import my.celium.org.itemhighlighter.client.HotbarHighlight;
 import my.celium.org.itemhighlighter.client.TooltipLines;
 import net.minecraft.client.Minecraft;
@@ -22,6 +22,8 @@ import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
 public final class ClientItemHighlighter {
@@ -33,8 +35,9 @@ public final class ClientItemHighlighter {
     private ClientItemHighlighter() {
     }
 
-    public static void register() {
+    public static void register(IEventBus modBus) {
         HighlightStore.load();
+        modBus.addListener((RegisterKeyMappingsEvent event) -> event.register(HighlightClient.OPEN_KEY));
         NeoForge.EVENT_BUS.addListener(ClientItemHighlighter::onRenderGui);
         NeoForge.EVENT_BUS.addListener(ClientItemHighlighter::onScreenForeground);
         NeoForge.EVENT_BUS.addListener(ClientItemHighlighter::onGatherTooltip);
@@ -66,7 +69,7 @@ public final class ClientItemHighlighter {
     }
 
     private static void onClientTick(ClientTickEvent.Post event) {
-        EntityGlowSync.tickClient(Minecraft.getInstance());
+        HighlightClient.tick(Minecraft.getInstance());
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> buildCommand() {
@@ -82,10 +85,13 @@ public final class ClientItemHighlighter {
                         .executes(context -> deliver(context.getSource(),
                                 HighlightActions.dispatchColorArgument(
                                         StringArgumentType.getString(context, ARGUMENT_COLOR)))))
-                .executes(context -> deliver(context.getSource(), HighlightActions.highlightHeld(null)));
+                .executes(context -> deliver(context.getSource(), HighlightActions.openMenu()));
     }
 
     private static int deliver(CommandSourceStack source, HighlightActions.Result result) {
+        if (result.message() == null) {
+            return result.code();
+        }
         if (result.success()) {
             source.sendSuccess(result::message, false);
         } else {

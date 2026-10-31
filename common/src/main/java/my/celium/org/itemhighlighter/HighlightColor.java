@@ -68,6 +68,71 @@ public final class HighlightColor {
         return null;
     }
 
+    /** A named color in the menu's palette. */
+    public record Preset(String name, int rgb) {
+    }
+
+    /** The menu's palette: the 16 dye colors, then brighter extras. */
+    public static final Preset[] PRESETS = {
+            new Preset("White", 0xF9FFFE), new Preset("Light Gray", 0x9D9D97), new Preset("Gray", 0x474F52),
+            new Preset("Black", 0x1D1D21), new Preset("Brown", 0x835432), new Preset("Red", 0xB02E26),
+            new Preset("Orange", 0xF9801D), new Preset("Yellow", 0xFED83D), new Preset("Lime", 0x80C71F),
+            new Preset("Green", 0x5E7C16), new Preset("Cyan", 0x169C9C), new Preset("Light Blue", 0x3AB3DA),
+            new Preset("Blue", 0x3C44AA), new Preset("Purple", 0x8932B8), new Preset("Magenta", 0xC74EBD),
+            new Preset("Pink", 0xF38BAA),
+            new Preset("Crimson", 0xFF1A3C), new Preset("Gold", 0xFFC400), new Preset("Mint", 0x5CFFB0),
+            new Preset("Aqua", 0x00F0FF), new Preset("Sky", 0x7CC8FF), new Preset("Royal", 0x3D5AFE),
+            new Preset("Violet", 0xB388FF), new Preset("Hot Pink", 0xFF2E9A),
+    };
+
+    /** Packed {@code 0xRRGGBB} from hue in [0,1) and saturation and value in [0,1]. */
+    public static int hsv(float hue, float saturation, float value) {
+        float h = (hue - (float) Math.floor(hue)) * 6f;
+        float s = Math.max(0f, Math.min(1f, saturation));
+        float v = Math.max(0f, Math.min(1f, value));
+        int sector = (int) Math.floor(h) % 6;
+        float f = h - (float) Math.floor(h);
+        float p = v * (1 - s);
+        float q = v * (1 - s * f);
+        float t = v * (1 - s * (1 - f));
+        return switch (sector) {
+            case 0 -> packed(v, t, p);
+            case 1 -> packed(q, v, p);
+            case 2 -> packed(p, v, t);
+            case 3 -> packed(p, q, v);
+            case 4 -> packed(t, p, v);
+            default -> packed(v, p, q);
+        };
+    }
+
+    /** {hue, saturation, value} of a packed color, each in [0,1]. */
+    public static float[] toHsv(int rgb) {
+        float r = ((rgb >> 16) & 0xFF) / 255f;
+        float g = ((rgb >> 8) & 0xFF) / 255f;
+        float b = (rgb & 0xFF) / 255f;
+        float max = Math.max(r, Math.max(g, b));
+        float delta = max - Math.min(r, Math.min(g, b));
+        float hue = 0;
+        if (delta > 0) {
+            if (max == r) {
+                hue = ((g - b) / delta) % 6;
+            } else if (max == g) {
+                hue = (b - r) / delta + 2;
+            } else {
+                hue = (r - g) / delta + 4;
+            }
+            hue /= 6;
+            if (hue < 0) {
+                hue += 1;
+            }
+        }
+        return new float[] {hue, max == 0 ? 0 : delta / max, max};
+    }
+
+    private static int packed(float r, float g, float b) {
+        return (Math.round(r * 255) << 16) | (Math.round(g * 255) << 8) | Math.round(b * 255);
+    }
+
     /** Formats packed {@code 0xRRGGBB} as {@code #RRGGBB}. */
     public static String toHex(int rgb) {
         return String.format("#%06X", rgb & 0xFFFFFF);

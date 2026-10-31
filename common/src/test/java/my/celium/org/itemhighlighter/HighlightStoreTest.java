@@ -33,6 +33,16 @@ class HighlightStoreTest {
     }
 
     @Test
+    void recoloringKeepsAnItemsPlace() {
+        HighlightStore.setColor("minecraft:diamond", 0x111111);
+        HighlightStore.setColor("minecraft:emerald", 0x222222);
+        HighlightStore.setColor("minecraft:diamond", 0x333333);
+        assertEquals(java.util.List.of("minecraft:diamond", "minecraft:emerald"),
+                java.util.List.copyOf(HighlightStore.entries().keySet()));
+        assertEquals(0x333333, HighlightStore.getColor("minecraft:diamond"));
+    }
+
+    @Test
     void ignoresBlankIds() {
         HighlightStore.setColor(null, 0xFF55AA);
         HighlightStore.setColor("   ", 0xFF55AA);

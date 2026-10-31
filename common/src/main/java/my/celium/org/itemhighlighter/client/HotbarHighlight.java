@@ -11,17 +11,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Highlights highlighted item textures themselves - never their slots - with
- * a tint and outline that hug the item's opaque texels.
+ * The highlight look, shared by the hotbar, every container screen and the
+ * menu's preview: a soft glow fading inward from the slot's edge, with the
+ * item and its count drawn again on top so both stay fully readable.
  *
- * <p>Drawn in the HUD layer after everything else, using vanilla's fixed
- * hotbar geometry (182x22 bar centered at the bottom, 20px cells, item
- * sprites 16x16 at +3,+3 inside each cell, offhand slot to the left).
- * The shape comes from {@link ItemTextureMask}: only opaque sprite texels
- * are tinted, the crisp border lands on transparent texels directly adjacent
- * to the item, and a single soft halo ring sits one texel further out.
- * Empty sprite corners stay untouched, so the glow reads as attached to the
- * item rather than a box around the slot. Client only.
+ * <p>Hooks run after the game drew its items and the renderer sorts fills
+ * below items below text within one layer, so drawing glow, item, count in
+ * that order works wherever the hook falls on each loader. Client only.
  */
 public final class HotbarHighlight {
     /** Vanilla hotbar width; cells are 20 wide, bar 22 tall. */
@@ -31,14 +27,15 @@ public final class HotbarHighlight {
     /** Vanilla item sprites are 16x16, drawn at +3,+3 inside their cell. */
     static final int SPRITE = 16;
     static final int SPRITE_OFFSET = 3;
-    /** Tint over opaque texels; halo ring just outside the crisp outline. */
-    static final int TINT_ALPHA = 0x2E;
-    static final int HALO_ALPHA = 0x50;
+    /** Alpha of each ring, from the crisp slot edge inward. */
+    private static final int[] RING_ALPHA = {0xF0, 0x78, 0x48, 0x28, 0x14};
+    /** Alpha of the area the rings leave in the middle. */
+    private static final int CENTER_ALPHA = 0x0C;
 
     private HotbarHighlight() {
     }
 
-    /** Draws the tint for every highlighted hotbar and offhand stack. Never throws. */
+    /** Draws the highlight for every highlighted hotbar and offhand stack. Never throws. */
     public static void render(GuiGraphicsExtractor gfx) {
         if (gfx == null) {
             return;
@@ -51,21 +48,13 @@ public final class HotbarHighlight {
     }
 
     private static void renderInner(GuiGraphicsExtractor gfx) {
-        if (!ItemHighlighterMod.isModEnabled()) {
-            return;
-        }
-        if (!readFlag(() -> ItemHighlighterMod.hotbarHighlight.get(), true)) {
+        if (!ItemHighlighterMod.isModEnabled() || !slotsEnabled()) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft == null || minecraft.player == null) {
-            return;
-        }
-        if (isAnyScreenOpen(minecraft)) {
-            // The HUD hotbar sits behind open menus (and vanilla dims it);
-            // the menu's own slots are highlighted by ContainerHighlight
-            // instead, so drawing here would only leave a misplaced
-            // duplicate behind.
+        if (minecraft == null || minecraft.player == null || isAnyScreenOpen(minecraft)) {
+            // Open menus dim the HUD hotbar and ContainerHighlight covers their
+            // own slots, so drawing here would leave a stray copy behind.
             return;
         }
         LocalPlayer player = minecraft.player;
@@ -73,119 +62,59 @@ public final class HotbarHighlight {
         int left = gfx.guiWidth() / 2 - BAR_WIDTH / 2;
         int top = gfx.guiHeight() - BAR_HEIGHT;
         for (int slot = 0; slot < 9; slot++) {
-            outlineItem(gfx, inventory.getItem(slot),
-                    left + slot * CELL + SPRITE_OFFSET, top + SPRITE_OFFSET);
+            highlightIfMarked(gfx, inventory.getItem(slot), left + slot * CELL + SPRITE_OFFSET, top + SPRITE_OFFSET);
         }
-        outlineItem(gfx, player.getOffhandItem(), left - 29 + SPRITE_OFFSET, top + SPRITE_OFFSET);
+        highlightIfMarked(gfx, player.getOffhandItem(), left - 29 + SPRITE_OFFSET, top + SPRITE_OFFSET);
     }
 
-    /**
-     * Texture-hugging highlight for one 16x16 item sprite at {@code (x, y)}.
-     * Tints opaque texels, outlines transparent texels touching the item, and
-     * adds one soft halo ring beyond that. Falls back to a tight sprite-edge
-     * border when no alpha mask is available (3D models). Shared with
-     * container-screen highlights so hotbar and inventory look identical.
-     */
-    static void outlineItem(GuiGraphicsExtractor gfx, ItemStack stack, int x, int y) {
+    /** Highlights a slot's stack at {@code (x, y)} when it has a color. Never throws. */
+    static void highlightIfMarked(GuiGraphicsExtractor gfx, ItemStack stack, int x, int y) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
-        Integer color = HighlightStore.getColor(HighlightKeys.keyFor(stack));
-        if (color == null) {
-            return;
-        }
-        highlightItem(gfx, stack, x, y, color & 0xFFFFFF);
-    }
-
-    /**
-     * Draws the texture highlight for a stack known to be highlighted.
-     * Never throws.
-     */
-    public static void highlightItem(GuiGraphicsExtractor gfx, ItemStack stack, int x, int y, int rgb) {
-        if (gfx == null || stack == null || stack.isEmpty()) {
-            return;
-        }
         try {
-            boolean[] mask = ItemTextureMask.maskFor(stack);
-            if (mask == null) {
-                fallbackOutline(gfx, x, y, rgb);
-            } else {
-                textureOutline(gfx, mask, x, y, rgb);
+            Integer color = HighlightStore.getColor(HighlightKeys.keyFor(stack));
+            if (color != null) {
+                glow(gfx, x, y, color & 0xFFFFFF);
+                gfx.item(stack, x, y);
+                gfx.itemDecorations(Minecraft.getInstance().font, stack, x, y);
             }
         } catch (RuntimeException e) {
-            // HUD must never crash the frame.
+            // Rendering must never crash the frame.
         }
     }
 
-    /** Tight sprite-edge border used when the true texel shape is unknown. */
-    private static void fallbackOutline(GuiGraphicsExtractor gfx, int x, int y, int rgb) {
-        int opaque = 0xFF000000 | rgb;
-        gfx.fill(x, y, x + SPRITE, y + SPRITE, (TINT_ALPHA << 24) | rgb);
-        gfx.fill(x, y, x + SPRITE, y + 1, opaque);
-        gfx.fill(x, y + SPRITE - 1, x + SPRITE, y + SPRITE, opaque);
-        gfx.fill(x, y, x + 1, y + SPRITE, opaque);
-        gfx.fill(x + SPRITE - 1, y, x + SPRITE, y + SPRITE, opaque);
-    }
-
-    /**
-     * Per-texel highlight: tint where the item is opaque, crisp outline where
-     * transparency touches the item, soft halo one texel further out. Empty
-     * sprite corners are never painted.
-     */
-    private static void textureOutline(GuiGraphicsExtractor gfx, boolean[] mask, int x, int y, int rgb) {
-        int size = ItemTextureMask.SIZE;
-        int opaque = 0xFF000000 | rgb;
-        int tint = (TINT_ALPHA << 24) | rgb;
-        int halo = (HALO_ALPHA << 24) | rgb;
-        for (int py = 0; py < size; py++) {
-            for (int px = 0; px < size; px++) {
-                if (mask[py * size + px]) {
-                    gfx.fill(x + px, y + py, x + px + 1, y + py + 1, tint);
-                }
-            }
+    /** The glow alone, for the 16x16 slot interior at {@code (x, y)}. */
+    static void glow(GuiGraphicsExtractor gfx, int x, int y, int rgb) {
+        int x0 = x - 1;
+        int y0 = y - 1;
+        int x1 = x + SPRITE + 1;
+        int y1 = y + SPRITE + 1;
+        for (int ring = 0; ring < RING_ALPHA.length; ring++) {
+            int color = (RING_ALPHA[ring] << 24) | rgb;
+            int l = x0 + ring;
+            int t = y0 + ring;
+            int r = x1 - ring;
+            int b = y1 - ring;
+            // The outer ring skips its corners, which softens the square.
+            int inset = ring == 0 ? 1 : 0;
+            gfx.fill(l + inset, t, r - inset, t + 1, color);
+            gfx.fill(l + inset, b - 1, r - inset, b, color);
+            gfx.fill(l, t + 1, l + 1, b - 1, color);
+            gfx.fill(r - 1, t + 1, r, b - 1, color);
         }
-        for (int py = -1; py <= size; py++) {
-            for (int px = -1; px <= size; px++) {
-                if (isOpaque(mask, size, px, py)) {
-                    continue;
-                }
-                if (touchesOpaque(mask, size, px, py, 1)) {
-                    gfx.fill(x + px, y + py, x + px + 1, y + py + 1, opaque);
-                } else if (touchesOpaque(mask, size, px, py, 2)) {
-                    gfx.fill(x + px, y + py, x + px + 1, y + py + 1, halo);
-                }
-            }
-        }
+        int inset = RING_ALPHA.length;
+        gfx.fill(x0 + inset, y0 + inset, x1 - inset, y1 - inset, (CENTER_ALPHA << 24) | rgb);
     }
 
-    private static boolean isOpaque(boolean[] mask, int size, int x, int y) {
-        return x >= 0 && y >= 0 && x < size && y < size && mask[y * size + x];
-    }
-
-    /** Whether any opaque texel lies within Chebyshev distance {@code radius}. */
-    private static boolean touchesOpaque(boolean[] mask, int size, int x, int y, int radius) {
-        for (int dy = -radius; dy <= radius; dy++) {
-            for (int dx = -radius; dx <= radius; dx++) {
-                if (dx == 0 && dy == 0) {
-                    continue;
-                }
-                if (isOpaque(mask, size, x + dx, y + dy)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean readFlag(java.util.function.BooleanSupplier reader, boolean fallback) {
+    static boolean slotsEnabled() {
         try {
-            return reader.getAsBoolean();
+            return ItemHighlighterMod.hotbarHighlight.get();
         } catch (RuntimeException e) {
-            return fallback;
+            return true;
         }
     }
 
-    /** Whether any screen (menu, chat, ...) is currently open. */
     private static boolean isAnyScreenOpen(Minecraft minecraft) {
         try {
             return minecraft.gui != null && MycelScreens.current() != null;

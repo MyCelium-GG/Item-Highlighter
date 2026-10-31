@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
  * the resulting message through its own command source. Client only.
  */
 public final class HighlightActions {
-    /** Outcome of a highlight action: brigadier code plus chat message. */
+    /** Outcome of a highlight action: brigadier code plus chat message, {@code null} for none. */
     public record Result(int code, Component message, boolean success) {
     }
 
@@ -48,6 +48,12 @@ public final class HighlightActions {
             }
         }
         return highlightHeld(rawColor);
+    }
+
+    /** Opens the menu, on the held item if there is one. No chat message. */
+    public static Result openMenu() {
+        HighlightClient.requestMenu(null, heldItem());
+        return new Result(1, null, true);
     }
 
     /**
@@ -109,7 +115,7 @@ public final class HighlightActions {
         Map<String, Integer> entries = HighlightStore.entries();
         if (entries.isEmpty()) {
             return new Result(1,
-                    Component.literal("No highlighted items. Hold an item and run /hl #RRGGBB."), true);
+                    Component.literal("No highlighted items. Press the highlight key or run /hl to open the menu."), true);
         }
         MutableComponent message = Component.literal("Highlighted items:");
         for (Map.Entry<String, Integer> entry : entries.entrySet()) {

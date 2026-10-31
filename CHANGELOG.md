@@ -6,6 +6,29 @@ ItemHighlighter is versioned semantically (`MAJOR.MINOR.PATCH`).
 It runs on Minecraft 26.3, 26.2 and 26.1 (Fabric + Forge + NeoForge, Java 25) and requires
  [Mycel](https://github.com/MyCelium-GG/MyCel-Lib) (`my.celium.org`).
 
+## [Unreleased]
+
+### Added
+
+- A menu, on **H** or `/hl`: your highlighted items, a search over every item,
+  a color palette, picker and hex field with a live preview, and switches for
+  the slot glow and world glow. Hover an item in any inventory and press H to
+  color that one.
+- `worldGlow` config to turn off the outline around dropped items and item
+  frames.
+
+### Changed
+
+- New look in slots: a soft glow from the slot's edge replaces the outline and
+  tint drawn over the item. Items and stack counts stay fully readable, and
+  blocks no longer get a plain box.
+- `/hl` with no color opens the menu instead of using `defaultColor`.
+- Recoloring an item keeps its place in the list.
+
+### Fixed
+
+- Highlights drew over the stack count.
+
 ## [1.1.0] - 2026-10-28
 
 ### Added

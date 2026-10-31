@@ -4,8 +4,6 @@ import java.lang.reflect.Field;
 
 import org.joml.Matrix3x2fStack;
 
-import my.celium.org.itemhighlighter.HighlightKeys;
-import my.celium.org.itemhighlighter.HighlightStore;
 import my.celium.org.itemhighlighter.ItemHighlighterMod;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -14,12 +12,10 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Draws the same texture-hugging highlight as the hotbar over every slot of
- * an open container screen (inventory, chests, furnaces, creative menu, ...)
- * plus the cursor-carried stack.
+ * Draws the highlight over every slot of an open container screen
+ * (inventory, chests, furnaces, creative menu, ...).
  *
- * <p>Called after the screen's foreground is extracted, so highlights sit on
- * top of items but under tooltips. Slot positions come from the menu's slot
+ * <p>Called after the screen's foreground is extracted. Slot positions come from the menu's slot
  * list plus the screen's {@code leftPos}/{@code topPos} (read reflectively;
  * any failure simply skips rendering), minus whatever translation the
  * extractor's pose already carries: Forge fires its foreground event
@@ -41,20 +37,21 @@ public final class ContainerHighlight {
             return;
         }
         try {
-            renderInner(gfx, screen, mouseX, mouseY);
+            renderInner(gfx, screen);
         } catch (RuntimeException e) {
             // Screens must never crash the frame.
         }
     }
 
-    private static void renderInner(GuiGraphicsExtractor gfx, Screen screen, int mouseX, int mouseY) {
+    private static void renderInner(GuiGraphicsExtractor gfx, Screen screen) {
         if (!ItemHighlighterMod.isModEnabled()) {
             return;
         }
-        if (!readFlag(() -> ItemHighlighterMod.hotbarHighlight.get(), true)) {
+        if (!(screen instanceof AbstractContainerScreen<?> container)) {
             return;
         }
-        if (!(screen instanceof AbstractContainerScreen<?> container)) {
+        HighlightClient.pollHoverKey(container);
+        if (!HotbarHighlight.slotsEnabled()) {
             return;
         }
         int left = readOffset(container, true);
@@ -79,32 +76,8 @@ public final class ContainerHighlight {
             if (stack == null || stack.isEmpty()) {
                 continue;
             }
-            Integer color;
-            try {
-                color = HighlightStore.getColor(HighlightKeys.keyFor(stack));
-            } catch (RuntimeException e) {
-                continue;
-            }
-            if (color == null) {
-                continue;
-            }
-            HotbarHighlight.highlightItem(gfx, stack, baseX + slot.x, baseY + slot.y, color & 0xFFFFFF);
+            HotbarHighlight.highlightIfMarked(gfx, stack, baseX + slot.x, baseY + slot.y);
         }
-        ItemStack carried;
-        try {
-            carried = container.getMenu().getCarried();
-        } catch (RuntimeException e) {
-            return;
-        }
-        if (carried == null || carried.isEmpty()) {
-            return;
-        }
-        Integer carriedColor = HighlightStore.getColor(HighlightKeys.keyFor(carried));
-        if (carriedColor == null) {
-            return;
-        }
-        HotbarHighlight.highlightItem(gfx, carried, mouseX - 8 - poseX, mouseY - 8 - poseY,
-                carriedColor & 0xFFFFFF);
     }
 
     /**
@@ -165,14 +138,6 @@ public final class ContainerHighlight {
                 topPosField = null;
             }
             fieldsResolved = true;
-        }
-    }
-
-    private static boolean readFlag(java.util.function.BooleanSupplier reader, boolean fallback) {
-        try {
-            return reader.getAsBoolean();
-        } catch (RuntimeException e) {
-            return fallback;
         }
     }
 }
