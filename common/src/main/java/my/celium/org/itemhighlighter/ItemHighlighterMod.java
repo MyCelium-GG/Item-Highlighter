@@ -21,14 +21,14 @@ import my.celium.org.util.TextUtil;
 public final class ItemHighlighterMod {
     public static final String ID = "itemhighlighter";
 
-    public static final ModMetadata META = ModMetadata.builder(ID, "ItemHighlighter", "1.2.1")
+    public static final ModMetadata META = ModMetadata.builder(ID, "ItemHighlighter", "1.2.2")
             .author("MyCelium")
             .website("https://www.curseforge.com/minecraft/mc-mods/item-highlighter-mod")
             .updateUrl("https://wiki.mycelium-gg.org/updates/itemhighlighter.json")
             .build();
 
-    /** Default gold highlight, as packed {@code 0xRRGGBB}. */
-    public static final int DEFAULT_COLOR_FALLBACK = TextUtil.WARN;
+    /** Orange, like before: the glow color does not follow the chat palette. */
+    public static final int DEFAULT_COLOR_FALLBACK = 0xFFA657;
 
     public static ConfigValue<Boolean> enabled;
     public static ConfigValue<Integer> defaultColor;
@@ -60,6 +60,7 @@ public final class ItemHighlighterMod {
         matchComponents = builder.booleanValue("matchComponents", false,
                 "When true, only stacks identical to the highlighted one match (same enchantments, custom name, damage and other components). When false, every item of the same type highlights.");
         config = builder.build();
+        HighlightStats.start();
     }
 
     public static boolean isModEnabled() {

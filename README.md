@@ -55,6 +55,13 @@ Hold the item and type (client command, no permissions needed):
 - `/hl clear` — removes the held item type's highlight.
 - `/hl list` — lists every highlighted item with a color swatch.
 
+## Anonymous stats
+
+Item Highlighter sends anonymous stats (how many and which items get highlighted, and errors in its own code) to its FastStats project through
+Mycel. It follows Mycel's choice exactly: the one-time screen in your own
+game, `shareStats` / `shareErrors` in `config/mycel.json` on servers.
+Details: https://wiki.mycelium-gg.org/privacy#stats-itemhighlighter
+
 ## Configuration (`config/itemhighlighter.json`)
 
 | Key | Default | Meaning |

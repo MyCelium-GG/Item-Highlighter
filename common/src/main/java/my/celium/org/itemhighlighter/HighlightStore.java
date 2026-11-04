@@ -82,6 +82,7 @@ public final class HighlightStore {
             oldest.next();
             oldest.remove();
         }
+        HighlightStats.count(DATA.containsKey(itemId) ? "recolor" : "highlight");
         DATA.put(itemId, rgb & 0xFFFFFF);
         save();
     }
@@ -91,6 +92,7 @@ public final class HighlightStore {
         if (itemId == null || DATA.remove(itemId) == null) {
             return false;
         }
+        HighlightStats.count("clear");
         save();
         return true;
     }

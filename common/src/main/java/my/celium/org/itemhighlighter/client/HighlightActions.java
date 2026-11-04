@@ -52,6 +52,7 @@ public final class HighlightActions {
 
     /** Opens the menu, on the held item if there is one. No chat message. */
     public static Result openMenu() {
+        my.celium.org.itemhighlighter.HighlightStats.count("menu");
         HighlightClient.requestMenu(null, heldItem());
         return new Result(1, null, true);
     }
