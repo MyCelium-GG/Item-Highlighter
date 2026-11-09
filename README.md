@@ -13,6 +13,8 @@
   <a href="https://github.com/MyCelium-GG/Item-Highlighter/blob/main/LICENSE"><img src="https://img.shields.io/github/license/MyCelium-GG/Item-Highlighter?style=flat-square&color=F2C14E" alt="License"></a>
 </p>
 
+<a href="https://www.curseforge.com/minecraft/mc-mods/mycel"><img src="https://raw.githubusercontent.com/MyCelium-GG/Item-Highlighter/4d85e775f63a/docs/img/banners/mycel-required.svg" alt="Mycel is required: this mod needs the Mycel library to run. Install Mycel next to it, for the same Minecraft version and loader. Download it from CurseForge." width="100%"></a>
+
 ![About the mod](https://raw.githubusercontent.com/MyCelium-GG/Item-Highlighter/20324060cf68/docs/img/banners/about-the-mod.svg)
 
 <img src="https://raw.githubusercontent.com/MyCelium-GG/Item-Highlighter/20324060cf68/docs/img/banners/about.svg" alt="ItemHighlighter Hover an item in any inventory and press H, pick a color, done: it gets a soft glow in the hotbar, offhand, inventories and containers, a glowing outline in the world (dropped items and item frames) and a colored ★ Highlighted tooltip line. Client side." width="100%">
