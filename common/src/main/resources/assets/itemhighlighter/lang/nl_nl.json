@@ -25,7 +25,7 @@
   "itemhighlighter.screen.empty": "Niets gemarkeerd. Zoek een voorwerp of druk op %s boven een voorwerp in een inventaris.",
   "itemhighlighter.screen.no_match": "Geen voorwerp met die naam.",
   "itemhighlighter.screen.highlighted": "Gemarkeerd",
-  "itemhighlighter.screen.pick_color": "Kies een kleur om het te markeren",
+  "itemhighlighter.screen.pick_color": "Kies een kleur",
   "itemhighlighter.screen.world_outline": "Omtrek in de wereld",
   "itemhighlighter.screen.nothing_selected": "Kies links een voorwerp om het te kleuren. In elke inventaris: wijs een voorwerp aan en druk op %s.",
   "itemhighlighter.config.enabled": "Ingeschakeld",

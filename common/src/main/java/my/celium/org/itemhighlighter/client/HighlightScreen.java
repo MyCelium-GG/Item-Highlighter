@@ -214,7 +214,8 @@ public final class HighlightScreen extends Screen {
                 Component.translatable("itemhighlighter.screen.search"));
         search.setBordered(false);
         search.setMaxLength(64);
-        search.setHint(MycelTheme.colored(tr("screen.search_hint"), MycelTheme.FAINT));
+        // The hint is not clipped to the box, so it must fit.
+        search.setHint(MycelTheme.colored(MycelTheme.fit(font, tr("screen.search_hint"), LIST_W - 10), MycelTheme.FAINT));
         search.setResponder(text -> {
             scroll = 0;
             refreshRows();
