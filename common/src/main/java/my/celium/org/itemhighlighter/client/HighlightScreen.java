@@ -211,17 +211,18 @@ public final class HighlightScreen extends Screen {
     @Override
     protected void init() {
         search = new EditBox(font, px() + PAD + 4, py() + TITLE_BAR + PAD + 3, LIST_W - 8, 9,
-                Component.literal("Search items"));
+                Component.translatable("itemhighlighter.screen.search"));
         search.setBordered(false);
         search.setMaxLength(64);
-        search.setHint(MycelTheme.colored("Search every item", MycelTheme.FAINT));
+        search.setHint(MycelTheme.colored(tr("screen.search_hint"), MycelTheme.FAINT));
         search.setResponder(text -> {
             scroll = 0;
             refreshRows();
         });
         addRenderableWidget(search);
 
-        hex = new EditBox(font, rightX() + font.width("Hex") + 10, hexRowY() + 3, 50, 9, Component.literal("Hex color"));
+        hex = new EditBox(font, rightX() + font.width(tr("screen.hex")) + 10, hexRowY() + 3, 50, 9,
+                Component.translatable("itemhighlighter.screen.hex_color"));
         hex.setBordered(false);
         hex.setMaxLength(7);
         hex.setValue(HighlightColor.toHex(color));
@@ -229,15 +230,15 @@ public final class HighlightScreen extends Screen {
         addRenderableWidget(hex);
 
         int toggleW = (rightW() - 4) / 2;
-        addRenderableWidget(toggle(rightX(), toggleY(), toggleW, "Slot glow", ItemHighlighterMod.hotbarHighlight));
-        addRenderableWidget(toggle(rightX() + toggleW + 4, toggleY(), toggleW, "World glow", ItemHighlighterMod.worldGlow));
+        addRenderableWidget(toggle(rightX(), toggleY(), toggleW, tr("screen.slot_glow"), ItemHighlighterMod.hotbarHighlight));
+        addRenderableWidget(toggle(rightX() + toggleW + 4, toggleY(), toggleW, tr("screen.world_glow"), ItemHighlighterMod.worldGlow));
 
         int bottom = py() + panelH() - PAD - FlatButton.HEIGHT;
         int buttonW = (rightW() - 4) / 2;
-        removeButton = new FlatButton(rightX(), bottom, buttonW, Component.literal("Remove"), false, this::removeSelected);
+        removeButton = new FlatButton(rightX(), bottom, buttonW, Component.literal(tr("screen.remove")), false, this::removeSelected);
         addRenderableWidget(removeButton);
-        String done = parent != null ? "Back" : "Done";
-        addRenderableWidget(new FlatButton(rightX() + buttonW + 4, bottom, buttonW, Component.literal(done), true, this::onClose));
+        Component done = Component.translatable(parent != null ? "gui.back" : "gui.done");
+        addRenderableWidget(new FlatButton(rightX() + buttonW + 4, bottom, buttonW, done, true, this::onClose));
         updateRemoveButton();
         refreshRows();
     }
@@ -253,7 +254,8 @@ public final class HighlightScreen extends Screen {
     }
 
     private static Component toggleLabel(String label, ConfigValue<Boolean> option) {
-        return Component.literal(label + (option.get() ? ": On" : ": Off"));
+        return Component.literal(label + ": ").append(option.get() ? net.minecraft.network.chat.CommonComponents.OPTION_ON
+                : net.minecraft.network.chat.CommonComponents.OPTION_OFF);
     }
 
     private void updateRemoveButton() {
@@ -342,7 +344,7 @@ public final class HighlightScreen extends Screen {
         gfx.fill(x0 + 2, y0 + 2, x1 - 2, y0 + TITLE_BAR, MycelTheme.ACCENT_DARK);
         gfx.fill(x0 + 2, y0 + TITLE_BAR, x1 - 2, y0 + TITLE_BAR + 1, MycelTheme.HEADER_EDGE);
         gfx.text(font, "Item Highlighter", x0 + PAD, y0 + 7, MycelTheme.HEADING);
-        String count = HighlightStore.entries().size() + " highlighted";
+        String count = tr("screen.count", HighlightStore.entries().size());
         gfx.text(font, count, x1 - PAD - font.width(count), y0 + 7, MycelTheme.HEADING);
 
         drawField(gfx, px() + PAD, py() + TITLE_BAR + PAD, LIST_W, 14, search.isFocused());
@@ -351,7 +353,7 @@ public final class HighlightScreen extends Screen {
             drawSelected(gfx);
             drawPalette(gfx, mx, my);
             drawPicker(gfx);
-            gfx.text(font, "Hex", rightX(), hexRowY() + 3, MycelTheme.DIM);
+            gfx.text(font, tr("screen.hex"), rightX(), hexRowY() + 3, MycelTheme.DIM);
             drawField(gfx, hex.getX() - 4, hexRowY(), 58, 14, hex.isFocused());
             drawWorldColor(gfx);
         } else {
@@ -371,12 +373,8 @@ public final class HighlightScreen extends Screen {
         gfx.fill(r.x(), r.y(), r.right(), r.bottom(), MycelTheme.BORDER);
         gfx.fill(r.x() + 1, r.y() + 1, r.right() - 1, r.bottom() - 1, MycelTheme.SURFACE);
         if (rows.isEmpty()) {
-            String[] lines = search.getValue().isBlank()
-                    ? new String[] {"Nothing highlighted.", "Search for an item,", "or press H over one", "in any inventory."}
-                    : new String[] {"No item called that."};
-            for (int i = 0; i < lines.length; i++) {
-                gfx.text(font, lines[i], r.x() + 6, r.y() + 6 + i * 11, MycelTheme.DIM);
-            }
+            wrapped(gfx, tr(search.getValue().isBlank() ? "screen.empty" : "screen.no_match", keyName()),
+                    r.x() + 6, r.y() + 6, r.w() - 12, MycelTheme.DIM);
             return;
         }
         int end = Math.min(rows.size(), scroll + visibleRows());
@@ -424,9 +422,9 @@ public final class HighlightScreen extends Screen {
         int room = px() + panelW() - PAD - x;
         gfx.text(font, MycelTheme.fit(font, selectedStack.getHoverName().getString(), room), x, p.y() + 3, MycelTheme.HEADING);
         boolean exact = HighlightKeys.isExactKey(selectedKey);
-        gfx.text(font, MycelTheme.fit(font, HighlightKeys.displayId(selectedKey) + (exact ? " (exact)" : ""), room),
+        gfx.text(font, MycelTheme.fit(font, HighlightKeys.displayId(selectedKey) + (exact ? " (" + tr("exact") + ")" : ""), room),
                 x, p.y() + 14, MycelTheme.FAINT);
-        gfx.text(font, highlighted() ? "Highlighted" : "Pick a color to highlight it", x, p.y() + 25,
+        gfx.text(font, MycelTheme.fit(font, tr(highlighted() ? "screen.highlighted" : "screen.pick_color"), room), x, p.y() + 25,
                 highlighted() ? MycelTheme.GOOD : MycelTheme.DIM);
     }
 
@@ -437,7 +435,7 @@ public final class HighlightScreen extends Screen {
             return;
         }
         int y = hexRowY() + 19;
-        String label = "World outline";
+        String label = tr("screen.world_outline");
         gfx.text(font, label, rightX(), y, MycelTheme.DIM);
         int x = rightX() + font.width(label) + 5;
         gfx.fill(x, y - 1, x + 9, y + 8, 0xFF0E0E0E);
@@ -446,9 +444,7 @@ public final class HighlightScreen extends Screen {
 
     private void drawNothingSelected(GuiGraphicsExtractor gfx) {
         Rect p = preview();
-        gfx.text(font, "Pick an item on the left to", p.x(), p.y() + 3, MycelTheme.TEXT);
-        gfx.text(font, "color it. In any inventory,", p.x(), p.y() + 14, MycelTheme.TEXT);
-        gfx.text(font, "hover an item and press H.", p.x(), p.y() + 25, MycelTheme.TEXT);
+        wrapped(gfx, tr("screen.nothing_selected", keyName()), p.x(), p.y() + 3, rightW(), MycelTheme.TEXT);
     }
 
     private void drawPalette(GuiGraphicsExtractor gfx, int mx, int my) {
@@ -464,7 +460,8 @@ public final class HighlightScreen extends Screen {
         }
         if (hovered >= 0) {
             HighlightColor.Preset preset = HighlightColor.PRESETS[hovered];
-            gfx.setTooltipForNextFrame(font, Component.literal(preset.name() + "  " + HighlightColor.toHex(preset.rgb())), mx, my);
+            gfx.setTooltipForNextFrame(font, Component.translatable("itemhighlighter.color." + preset.name().toLowerCase(java.util.Locale.ROOT).replace(' ', '_'))
+                    .append("  " + HighlightColor.toHex(preset.rgb())), mx, my);
         }
     }
 
@@ -608,5 +605,23 @@ public final class HighlightScreen extends Screen {
         boolean stillOpen = parent != null && minecraft.player != null
                 && (minecraft.player.containerMenu == parent.getMenu() || parent instanceof CreativeModeInventoryScreen);
         MycelScreens.open(stillOpen ? parent : null);
+    }
+
+    /** A text of this mod in the game's language. */
+    private static String tr(String path, Object... args) {
+        return net.minecraft.client.resources.language.I18n.get("itemhighlighter." + path, args);
+    }
+
+    /** The key players press to highlight, as shown in Controls (H unless they changed it). */
+    private static String keyName() {
+        return HighlightClient.OPEN_KEY.getTranslatedKeyMessage().getString();
+    }
+
+    /** Draws text wrapped to {@code width}, one line every 11 pixels. */
+    private void wrapped(GuiGraphicsExtractor gfx, String text, int x, int y, int width, int color) {
+        for (net.minecraft.util.FormattedCharSequence line : font.split(Component.literal(text), width)) {
+            gfx.text(font, line, x, y, color);
+            y += 11;
+        }
     }
 }

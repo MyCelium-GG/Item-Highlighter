@@ -11,6 +11,11 @@ import net.fabricmc.api.ModInitializer;
 public final class ItemHighlighterFabric implements ModInitializer {
     @Override
     public void onInitialize() {
+        if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("mycel")) {
+            my.celium.org.itemhighlighter.MissingMycel.logOnce();
+            return;
+        }
+        my.celium.org.itemhighlighter.ModGate.open();
         ItemHighlighterMod.init();
     }
 }

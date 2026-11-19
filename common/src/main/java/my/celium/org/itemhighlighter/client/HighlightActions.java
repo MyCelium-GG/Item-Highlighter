@@ -64,7 +64,7 @@ public final class HighlightActions {
     public static Result highlightHeld(String rawColor) {
         ItemStack held = heldItem();
         if (held == null) {
-            return new Result(0, Component.literal("Hold an item to highlight it."), false);
+            return new Result(0, Component.translatable("itemhighlighter.msg.hold_to_highlight"), false);
         }
         int rgb;
         if (rawColor == null || rawColor.isBlank()) {
@@ -73,23 +73,20 @@ public final class HighlightActions {
             Integer parsed = HighlightColor.parseLenient(rawColor);
             if (parsed == null) {
                 return new Result(0,
-                        Component.literal(
-                                "Not a color. Start with #RRGGBB or a legacy code like &a (§a works too)."),
+                        Component.translatable("itemhighlighter.msg.not_a_color"),
                         false);
             }
             rgb = parsed;
         }
         String key = HighlightKeys.keyFor(held);
         if (key.isEmpty()) {
-            return new Result(0, Component.literal("Could not identify the held item."), false);
+            return new Result(0, Component.translatable("itemhighlighter.msg.unknown_item"), false);
         }
         HighlightStore.setColor(key, rgb);
-        MutableComponent message = Component.literal("Highlighted ");
-        message.append(held.getHoverName().copy());
-        message.append(Component.literal(" with "));
-        message.append(swatch(rgb));
+        MutableComponent message = Component.translatable("itemhighlighter.msg.highlighted",
+                held.getHoverName().copy(), swatch(rgb));
         if (HighlightKeys.isExactKey(key)) {
-            message.append(Component.literal(" (exact match)"));
+            message.append(" ").append(Component.translatable("itemhighlighter.msg.exact_match"));
         }
         return new Result(1, message, true);
     }
@@ -98,17 +95,17 @@ public final class HighlightActions {
     public static Result clearHeld() {
         ItemStack held = heldItem();
         if (held == null) {
-            return new Result(0, Component.literal("Hold an item to clear its highlight."), false);
+            return new Result(0, Component.translatable("itemhighlighter.msg.hold_to_clear"), false);
         }
         String key = HighlightKeys.keyFor(held);
         if (key.isEmpty()) {
-            return new Result(0, Component.literal("Could not identify the held item."), false);
+            return new Result(0, Component.translatable("itemhighlighter.msg.unknown_item"), false);
         }
         if (!HighlightStore.remove(key)) {
-            return new Result(0, Component.literal("That item is not highlighted."), false);
+            return new Result(0, Component.translatable("itemhighlighter.msg.not_highlighted"), false);
         }
         return new Result(1,
-                Component.literal("Cleared highlight for ").append(held.getHoverName().copy()), true);
+                Component.translatable("itemhighlighter.msg.cleared", held.getHoverName().copy()), true);
     }
 
     /** Lists every highlighted item. */
@@ -116,15 +113,15 @@ public final class HighlightActions {
         Map<String, Integer> entries = HighlightStore.entries();
         if (entries.isEmpty()) {
             return new Result(1,
-                    Component.literal("No highlighted items. Press the highlight key or run /hl to open the menu."), true);
+                    Component.translatable("itemhighlighter.msg.none"), true);
         }
-        MutableComponent message = Component.literal("Highlighted items:");
+        MutableComponent message = Component.translatable("itemhighlighter.msg.list");
         for (Map.Entry<String, Integer> entry : entries.entrySet()) {
             message.append(Component.literal("\n"));
             message.append(swatch(entry.getValue()));
             message.append(Component.literal(" " + HighlightKeys.displayId(entry.getKey())));
             if (HighlightKeys.isExactKey(entry.getKey())) {
-                message.append(Component.literal(" (exact)"));
+                message.append(" ").append(Component.translatable("itemhighlighter.exact"));
             }
         }
         return new Result(1, message, true);

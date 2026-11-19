@@ -16,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
  * stack gets the highlight line and builds it. Never throws.
  */
 public final class TooltipLines {
-    static final String LABEL = "★ Highlighted";
 
     private TooltipLines() {
     }
@@ -50,7 +49,7 @@ public final class TooltipLines {
 
     /** A {@code ★ Highlighted} line in the given packed color. */
     public static Component line(int rgb) {
-        MutableComponent out = Component.literal(LABEL);
+        MutableComponent out = Component.literal("★ ").append(Component.translatable("itemhighlighter.tooltip"));
         TextColor color = TextColor.fromRgb(rgb & 0xFFFFFF);
         if (color != null) {
             out.withStyle(Style.EMPTY.withColor(color));

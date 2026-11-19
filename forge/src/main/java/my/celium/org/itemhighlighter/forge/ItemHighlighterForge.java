@@ -20,6 +20,15 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 @Mod(ItemHighlighterMod.ID)
 public final class ItemHighlighterForge {
     public ItemHighlighterForge(@SuppressWarnings("unused") FMLJavaModLoadingContext context) {
+        if (!net.minecraftforge.fml.ModList.isLoaded("mycel")) {
+            my.celium.org.itemhighlighter.MissingMycel.logOnce();
+            if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
+                net.minecraftforge.event.TickEvent.ClientTickEvent.Post.BUS.addListener(
+                        event -> my.celium.org.itemhighlighter.MissingMycel.tick(net.minecraft.client.Minecraft.getInstance()));
+            }
+            return;
+        }
+        my.celium.org.itemhighlighter.ModGate.open();
         ItemHighlighterMod.init();
         if (FMLEnvironment.dist == Dist.CLIENT) {
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,

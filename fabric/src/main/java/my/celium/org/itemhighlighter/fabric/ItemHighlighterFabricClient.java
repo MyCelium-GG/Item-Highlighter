@@ -33,6 +33,11 @@ public final class ItemHighlighterFabricClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("mycel")) {
+            net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(
+                    my.celium.org.itemhighlighter.MissingMycel::tick);
+            return;
+        }
         HighlightStore.load();
         KeyMappingHelper.registerKeyMapping(HighlightClient.OPEN_KEY);
         HudElementRegistry.addLast(HUD_ID, (gfx, tracker) -> HotbarHighlight.render(gfx));
